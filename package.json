@@ -1,0 +1,14 @@
+{
+  "name": "sneakyapi",
+  "version": "1.0.0",
+  "description": "An unofficial API for SneakyHub",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "DarkGuy10",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
