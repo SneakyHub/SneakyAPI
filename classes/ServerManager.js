@@ -5,6 +5,9 @@ const { JSDOM } = require("jsdom")
 class ServerManager {
     constructor(client){
         this.client = client
+        this.fetch().then(servers => {
+            this.cache = servers
+        })
     }
 
     async create(data){
@@ -21,13 +24,13 @@ class ServerManager {
         form.append('product_id', data.product_id)
         await this.client.instance.post(`https://dash.sneakyhub.com/servers/`, form, {headers:form.getHeaders()})
             .catch(error => console.log(error))
-        return (await this.fetch()).find(server => server.name === data.name)
+        return Array.from((await this.fetch()).keys()).find(server => server.name === data.name)
     }
 
     async fetch(){
         if(!this.client.sneakyhub_session) return
 
-        const servers = []
+        const servers = new Map()
         const response = await this.client.instance.request({
             method: 'get',
             url: '/servers',
@@ -38,7 +41,7 @@ class ServerManager {
             server.name = each.querySelector('.card-title').lastChild.textContent.trim()
             server.panelID = each.querySelector('a.dropdown-item.text-info').getAttribute('href').split('/').pop()
             server.dashID = each.querySelector('form').getAttribute('action').split('/').pop()
-            servers.push(server)
+            servers.set(server.panelID, server)
         })
         return servers
     }
