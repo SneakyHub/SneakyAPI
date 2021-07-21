@@ -1,13 +1,15 @@
 const Server = require("./Server")
 const FormData = require('form-data')
 const { JSDOM } = require("jsdom")
+const { default: axios } = require("axios")
 
 class ServerManager {
     constructor(client){
         this.client = client
-        this.fetch().then(servers => {
-            this.cache = servers
-        })
+    }
+
+    async loadCache(){
+        this.cache = await this.fetch()
     }
 
     async create(data){
@@ -29,7 +31,14 @@ class ServerManager {
         return Array.from((await this.fetch()).keys()).find(server => server.name === data.name)
     }
 
-    async fetch(){
+    async fetch(identifier){
+        if(identifier){
+            if(!this.cache.has(identifier))
+                throw new Error(`No server with identifier ${identifier} exists`)
+        
+            return await this.cache.get(identifier).fetch()
+        }
+
         if(!this.client.sneakyhub_session || !this.client._token) 
             throw new Error('The client is not ready yet. Consider using await/.then() with login')
 
@@ -39,13 +48,13 @@ class ServerManager {
             url: '/servers',
         })
         const parsed = new JSDOM(response.data)
-        parsed.window.document.querySelectorAll('.card').forEach(each => {
+        for(const each of parsed.window.document.querySelectorAll('.card')){
             let server = new Server(this.client)
-            server.name = each.querySelector('.card-title').lastChild.textContent.trim()
-            server.panelID = each.querySelector('a.dropdown-item.text-info').getAttribute('href').split('/').pop()
+            server.identifier = each.querySelector('a.dropdown-item.text-info').getAttribute('href').split('/').pop()
             server.dashID = each.querySelector('form').getAttribute('action').split('/').pop()
-            servers.set(server.panelID, server)
-        })
+            await server.fetch()
+            servers.set(server.identifier, server)
+        }
         return servers
     }
 }

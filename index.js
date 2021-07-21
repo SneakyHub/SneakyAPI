@@ -1,18 +1,17 @@
-const { default: axios } = require("axios")
-const { JSDOM } = require("jsdom")
-const ClientUser = require("./classes/ClientUser")
-const ServerManager = require("./classes/ServerManager")
+const { default: axios } = require('axios')
+const { JSDOM } = require('jsdom')
+const ClientUser = require('./classes/ClientUser')
+const ServerManager = require('./classes/ServerManager')
 
 class SneakyAPI {
     constructor(){
-        this.sneakyhub_session = ''
-        this._token = ''
-        this.user = {}
         this.servers = new ServerManager(this)
     }
 
-    async login(sneakyhub_session) {
+    async login(sneakyhub_session, panelAPI) {
         this.sneakyhub_session = sneakyhub_session
+        this.panelAPI = panelAPI
+
         this.instance = axios.create({
             baseURL: 'https://dash.sneakyhub.com/',
             headers: {
@@ -28,20 +27,25 @@ class SneakyAPI {
             },
             withCredentials: true
         })
-        const response = await this.instance.request({
+
+        // Get user-info and csrf-token from dash.sneakyhub.com
+        const profile = await this.instance.request({
             method: 'get',
             url: '/profile',
         }).catch(error => console.log(error))
-        const parsed = new JSDOM(response.data)
-        this._token = parsed.window.document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        const profileParsed = new JSDOM(profile.data)
+        this._token = profileParsed.window.document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         const data = {
-            username: parsed.window.document.querySelector('input[name="name"]').value,
-            email: parsed.window.document.querySelector('input[name="email"]').value,
-            credits: parseFloat(parsed.window.document.querySelector('.badge.badge-primary').lastChild.textContent.trim()),
-            verifiedEmail: parsed.window.document.querySelector('i[data-content="Verified"]') != null,
-            verifiedDiscord: parsed.window.document.querySelector('.verified-discord div.callout.callout-info p').textContent.trim() === 'You are verified!'
+            username: profileParsed.window.document.querySelector('input[name="name"]').value,
+            email: profileParsed.window.document.querySelector('input[name="email"]').value,
+            credits: parseFloat(profileParsed.window.document.querySelector('.badge.badge-primary').lastChild.textContent.trim()),
+            verifiedEmail: profileParsed.window.document.querySelector('i[data-content="Verified"]') != null,
+            verifiedDiscord: profileParsed.window.document.querySelector('.verified-discord div.callout.callout-info p').textContent.trim() === 'You are verified!'
         }
-        this.user = new ClientUser(data, this)
+        this.user = new ClientUser(data, this)  
+        
+        //Populate ServerManager cache
+        this.servers.loadCache()
     }
 }
 
