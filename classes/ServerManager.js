@@ -11,9 +11,11 @@ class ServerManager {
     }
 
     async create(data){
-        if(!this.client.sneakyhub_session) return
+        if(!this.client.sneakyhub_session || !this.client._token) 
+            throw new Error('The client is not ready yet. Consider using await/.then() with login')
+
         if(!data.name || !data.node_id || !data.egg_id || !data.product_id) 
-            throw new Error('Incomplete data provided!')
+            throw new Error('Incomplete arguements. Refer to docs')
         data.name = data.name.trim()
         let form = new FormData()
         form.append('_token', this.client._token)
@@ -28,7 +30,8 @@ class ServerManager {
     }
 
     async fetch(){
-        if(!this.client.sneakyhub_session) return
+        if(!this.client.sneakyhub_session || !this.client._token) 
+            throw new Error('The client is not ready yet. Consider using await/.then() with login')
 
         const servers = new Map()
         const response = await this.client.instance.request({
