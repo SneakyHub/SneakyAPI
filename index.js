@@ -1,5 +1,6 @@
 const { default: axios } = require("axios")
 const { JSDOM } = require("jsdom")
+const ClientUser = require("./classes/ClientUser")
 const ServerManager = require("./classes/ServerManager")
 
 class SneakyAPI {
@@ -33,13 +34,14 @@ class SneakyAPI {
         }).catch(error => console.log(error))
         const parsed = new JSDOM(response.data)
         this._token = parsed.window.document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        this.user = {
+        const data = {
             username: parsed.window.document.querySelector('input[name="name"]').value,
             email: parsed.window.document.querySelector('input[name="email"]').value,
             credits: parseFloat(parsed.window.document.querySelector('.badge.badge-primary').lastChild.textContent.trim()),
             verifiedEmail: parsed.window.document.querySelector('i[data-content="Verified"]') != null,
             verifiedDiscord: parsed.window.document.querySelector('.verified-discord div.callout.callout-info p').textContent.trim() === 'You are verified!'
         }
+        this.user = new ClientUser(data, this)
     }
 }
 
