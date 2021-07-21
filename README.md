@@ -35,7 +35,8 @@ An object having basic profile info about the logged in user \[taken from `\prof
   email: ,
   credits: ,
   verifiedDiscord: , // boolean: whether the user has a verified Discord 
-  verifiedEmail: // boolean: whether the user has a verified email
+  verifiedEmail: ,// boolean: whether the user has a verified email
+  client: // points back to the client this user belongs to
 }
 ```
 ##### `servers`
