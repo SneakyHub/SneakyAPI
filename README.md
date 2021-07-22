@@ -1,22 +1,7 @@
 # SneakyAPI
-An unofficial API for SneakyHub <br>
+The official API for SneakyHub <br>
 
-### Example
-```js
-const SneakyAPI = require('./index')
-const client = new SneakyAPI()
-session = '' // Put your sneakyhub_session cookie here
-client.login(session)
-    .then(async () => {
-        const server = await client.servers.create({
-            name: 'ApplePen',
-            node_id: '13',
-            egg_id: '50',
-            product_id: 'ubNiJAQUS8inSPyAGmC-y'
-        })
-        console.log(server.name)
-    })
-```
+##### The ~~archives~~ docs are incomplete
 
 ## Classes
 ### `SneakyAPI`
